@@ -27,8 +27,8 @@ extern crate tiny_secp256k1;
 
 use tiny_secp256k1::{is_valid_secret, create_public_key, ECPointG};
 
-#[link_args = "-s EXPORTED_FUNCTIONS=['_input_ptr','_secret_ptr','_public_ptr','_address_ptr','_ecpointg','_verify_secret','_brain']"]
-extern {}
+// #[link_args = "-s EXPORTED_FUNCTIONS=['_input_ptr','_secret_ptr','_public_ptr','_address_ptr','_ecpointg','_verify_secret','_brain']"]
+// extern {}
 
 use tiny_keccak::Keccak;
 
@@ -54,7 +54,7 @@ static mut ADDRESS: [u8; 20] = [0; 20];
 static mut G: Option<ECPointG> = None;
 
 #[no_mangle]
-pub fn ecpointg() -> &'static ECPointG {
+pub extern "C" fn ecpointg() -> &'static ECPointG {
     let g = unsafe { &G };
 
     if let Some(ref g) = *g {
@@ -66,32 +66,32 @@ pub fn ecpointg() -> &'static ECPointG {
 }
 
 #[no_mangle]
-pub fn input_ptr() -> *const u8 {
+pub extern "C" fn input_ptr() -> *const u8 {
     unsafe { INPUT.as_ptr() }
 }
 
 #[no_mangle]
-pub fn secret_ptr() -> *const u8 {
+pub extern "C" fn secret_ptr() -> *const u8 {
     unsafe { SECRET.as_ptr() }
 }
 
 #[no_mangle]
-pub fn public_ptr() -> *const u8 {
+pub extern "C" fn public_ptr() -> *const u8 {
     unsafe { PUBLIC.as_ptr() }
 }
 
 #[no_mangle]
-pub fn address_ptr() -> *const u8 {
+pub extern "C" fn address_ptr() -> *const u8 {
     unsafe { ADDRESS.as_ptr() }
 }
 
 #[no_mangle]
-pub fn verify_secret() -> bool {
+pub extern "C" fn verify_secret() -> bool {
     is_valid_secret(unsafe { &SECRET })
 }
 
 #[no_mangle]
-pub fn brain(input_len: usize) {
+pub extern "C" fn brain(input_len: usize) {
     let data = unsafe { &INPUT[..input_len] };
     let mut secret_out = unsafe { &mut SECRET };
     let mut public_out = unsafe { &mut PUBLIC };

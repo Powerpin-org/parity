@@ -778,6 +778,10 @@ impl Configuration {
 	}
 
 	fn ws_origins(&self) -> Option<Vec<String>> {
+		if self.args.flag_unsafe_expose {
+			return None;
+		}
+
 		Self::parse_hosts(&self.args.flag_ws_origins)
 	}
 
@@ -882,8 +886,8 @@ impl Configuration {
 		use path;
 
 		let local_path = default_local_path();
-		let base_path = self.args.flag_base_path.as_ref().map_or_else(|| default_data_path(), |s| s.clone());
-		let data_path = replace_home("", self.args.flag_datadir.as_ref().unwrap_or(&base_path));
+		let base_path = self.args.flag_base_path.as_ref().or_else(|| self.args.flag_datadir.as_ref()).map_or_else(|| default_data_path(), |s| s.clone());
+		let data_path = replace_home("", &base_path);
 		let base_db_path = if self.args.flag_base_path.is_some() && self.args.flag_db_path.is_none() {
 			// If base_path is set and db_path is not we default to base path subdir instead of LOCAL.
 			"$BASE/chains"
@@ -1595,6 +1599,7 @@ mod tests {
 		assert_eq!(conf0.http_config().unwrap().hosts, None);
 		assert_eq!(&conf0.ws_config().unwrap().interface, "0.0.0.0");
 		assert_eq!(conf0.ws_config().unwrap().hosts, None);
+		assert_eq!(conf0.ws_config().unwrap().origins, None);
 		assert_eq!(&conf0.ui_config().interface, "0.0.0.0");
 		assert_eq!(conf0.ui_config().hosts, None);
 		assert_eq!(&conf0.secretstore_config().unwrap().interface, "0.0.0.0");

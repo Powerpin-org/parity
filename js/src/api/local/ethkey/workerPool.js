@@ -38,7 +38,8 @@ class WorkerContainer {
         this.busy = false;
 
         if (err) {
-          reject(err);
+          // `err` ought to be a String
+          reject(new Error(err));
         } else {
           resolve(result);
         }

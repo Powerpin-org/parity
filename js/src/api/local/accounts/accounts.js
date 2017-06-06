@@ -25,7 +25,7 @@ export default class Accounts {
   constructor (data = localStore.get(LS_STORE_KEY) || {}) {
     const {
       last = NULL_ADDRESS,
-      store = []
+      store = {}
     } = data;
 
     this.persist = debounce(() => {
@@ -33,7 +33,20 @@ export default class Accounts {
     }, 100);
 
     this._last = last;
-    this._store = store.map((data) => new Account(this.persist, data));
+    this._store = {};
+
+    if (Array.isArray(store)) {
+      // Recover older version that stored accounts as an array
+      store.forEach((data) => {
+        const account = new Account(this.persist, data);
+
+        this._store[account.address] = account;
+      });
+    } else {
+      Object.keys(store).forEach((key) => {
+        this._store[key] = new Account(this.persist, store[key]);
+      });
+    }
   }
 
   create (secret, password) {
@@ -44,11 +57,11 @@ export default class Accounts {
       .then((account) => {
         const { address } = account;
 
-        if (this._store.find((account) => account.address === address)) {
+        if (address in this._store && this._store[address].uuid) {
           throw new Error(`Account ${address} already exists!`);
         }
 
-        this._store.push(account);
+        this._store[address] = account;
         this.lastAddress = address;
 
         this.persist();
@@ -68,15 +81,27 @@ export default class Accounts {
   get (address) {
     address = address.toLowerCase();
 
-    this.lastAddress = address;
-
-    const account = this._store.find((account) => account.address === address);
+    const account = this._store[address];
 
     if (!account) {
       throw new Error(`Account not found: ${address}`);
     }
 
+    this.lastAddress = address;
+
     return account;
+  }
+
+  getLazyCreate (address) {
+    address = address.toLowerCase();
+
+    this.lastAddress = address;
+
+    if (!(address in this._store)) {
+      this._store[address] = new Account(this.persist);
+    }
+
+    return this._store[address];
   }
 
   remove (address, password) {
@@ -108,26 +133,20 @@ export default class Accounts {
   removeUnsafe (address) {
     address = address.toLowerCase();
 
-    const index = this._store.findIndex((account) => account.address === address);
-
-    if (index === -1) {
-      return;
-    }
-
-    this._store.splice(index, 1);
+    delete this._store[address];
 
     this.persist();
   }
 
-  mapArray (mapper) {
-    return this._store.map(mapper);
+  addresses () {
+    return Object.keys(this._store);
   }
 
-  mapObject (mapper) {
+  map (mapper) {
     const result = {};
 
-    this._store.forEach((account) => {
-      result[account.address] = mapper(account);
+    Object.keys(this._store).forEach((key) => {
+      result[key] = mapper(this._store[key]);
     });
 
     return result;

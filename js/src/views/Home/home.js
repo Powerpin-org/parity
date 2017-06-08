@@ -49,6 +49,13 @@ export default class Home extends Component {
   }
 
   render () {
+    const urls = (
+      <Urls
+        extensionStore={ this.extensionStore }
+        store={ this.webStore }
+      />
+    );
+
     return (
       <Page
         className={ styles.body }
@@ -60,10 +67,7 @@ export default class Home extends Component {
         }
       >
         <News />
-        <Urls
-          extensionStore={ this.extensionStore }
-          store={ this.webStore }
-        />
+        { urls }
         <div className={ styles.row }>
           <div className={ styles.column }>
             <Dapps

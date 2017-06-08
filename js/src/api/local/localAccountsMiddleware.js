@@ -68,6 +68,10 @@ export default class LocalAccountsMiddleware extends Middleware {
       return transactions.hash(id) || Promise.resolve(null);
     });
 
+    register('parity_dappsList', () => {
+      return [];
+    });
+
     register('parity_defaultAccount', () => {
       return accounts.lastAddress;
     });
@@ -181,6 +185,10 @@ export default class LocalAccountsMiddleware extends Middleware {
     register('parity_wsUrl', () => {
       // This is a hack
       return `${window.location.hostname}:8546`;
+    });
+
+    register('parity_dappsUrl', () => {
+      return `${window.location.hostname}:8545`;
     });
 
     register('parity_killAccount', ([address, password]) => {

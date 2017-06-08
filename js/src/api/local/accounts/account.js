@@ -41,6 +41,15 @@ export default class Account {
       });
   }
 
+  export () {
+    const exported = Object.assign({}, this._keyObject);
+
+    exported.meta = JSON.stringify(this._meta);
+    exported.name = this._name;
+
+    return exported;
+  }
+
   get address () {
     return `0x${this._keyObject.address.toLowerCase()}`;
   }

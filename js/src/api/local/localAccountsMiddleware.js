@@ -72,6 +72,23 @@ export default class LocalAccountsMiddleware extends Middleware {
       return accounts.lastAddress;
     });
 
+    register('parity_exportAccount', ([address, password]) => {
+      const account = accounts.get(address);
+
+      if (!password) {
+        password = '';
+      }
+
+      return account.isValidPassword(password)
+        .then((isValid) => {
+          if (!isValid) {
+            throw new Error('Invalid password');
+          }
+
+          return account.export();
+        });
+    });
+
     register('parity_generateSecretPhrase', () => {
       return randomPhrase(12);
     });
@@ -104,6 +121,14 @@ export default class LocalAccountsMiddleware extends Middleware {
 
           return accounts.create(secret, password);
         });
+    });
+
+    register('parity_newAccountFromWallet', ([json, password]) => {
+      if (!password) {
+        password = '';
+      }
+
+      return accounts.restoreFromWallet(JSON.parse(json), password);
     });
 
     register('parity_setAccountMeta', ([address, meta]) => {

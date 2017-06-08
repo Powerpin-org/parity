@@ -17,6 +17,7 @@
 import Account from './account';
 import localStore from 'store';
 import { debounce } from 'lodash';
+import { decryptPrivateKey } from '../ethkey';
 
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 const LS_STORE_KEY = '_parity::localAccounts';
@@ -49,25 +50,39 @@ export default class Accounts {
     }
   }
 
+  _addAccount = (account) => {
+    const { address } = account;
+
+    if (address in this._store && this._store[address].uuid) {
+      throw new Error(`Account ${address} already exists!`);
+    }
+
+    this._store[address] = account;
+    this.lastAddress = address;
+
+    this.persist();
+
+    return account.address;
+  }
+
   create (secret, password) {
     const privateKey = Buffer.from(secret.slice(2), 'hex');
 
     return Account
       .fromPrivateKey(this.persist, privateKey, password)
-      .then((account) => {
-        const { address } = account;
+      .then(this._addAccount);
+  }
 
-        if (address in this._store && this._store[address].uuid) {
-          throw new Error(`Account ${address} already exists!`);
+  restoreFromWallet (wallet, password) {
+    return decryptPrivateKey(wallet, password)
+      .then((privateKey) => {
+        if (!privateKey) {
+          throw new Error('Invalid password');
         }
 
-        this._store[address] = account;
-        this.lastAddress = address;
-
-        this.persist();
-
-        return account.address;
-      });
+        return Account.fromPrivateKey(this.persist, privateKey, password);
+      })
+      .then(this._addAccount);
   }
 
   set lastAddress (value) {

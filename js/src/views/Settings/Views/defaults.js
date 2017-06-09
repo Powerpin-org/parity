@@ -59,6 +59,7 @@ const defaultViews = {
 
   contracts: {
     active: false,
+    onlyPersonal: true,
     icon: <ContactsIcon />,
     route: '/contracts',
     value: 'contract'

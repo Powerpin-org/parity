@@ -1037,7 +1037,7 @@ impl Configuration {
 			self.args.flag_geth ||
 			self.args.flag_no_ui;
 
-		!ui_disabled
+		!ui_disabled && cfg!(feature = "ui-enabled")
 	}
 
 	fn verifier_settings(&self) -> VerifierSettings {

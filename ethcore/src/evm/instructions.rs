@@ -37,6 +37,15 @@ pub fn get_push_bytes(i: Instruction) -> usize {
 	(i - PUSH1 + 1) as usize
 }
 
+/// Returns number of bytes to read for `PUSHN` instruction or 0.
+pub fn push_bytes(i: Instruction) -> usize {
+	if is_push(i) {
+		get_push_bytes(i)
+	} else {
+		0
+	}
+}
+
 #[test]
 fn test_get_push_bytes() {
 	assert_eq!(get_push_bytes(PUSH1), 1);
@@ -178,6 +187,8 @@ lazy_static! {
 		arr[ADDMOD as usize] =			InstructionInfo::new("ADDMOD",			0, 3, 1, false, GasPriceTier::Mid);
 		arr[MULMOD as usize] =			InstructionInfo::new("MULMOD",			0, 3, 1, false, GasPriceTier::Mid);
 		arr[SIGNEXTEND as usize] =		InstructionInfo::new("SIGNEXTEND",		0, 2, 1, false, GasPriceTier::Low);
+		arr[RETURNDATASIZE as usize] =	InstructionInfo::new("RETURNDATASIZE",	0, 0, 1, false, GasPriceTier::Base);
+		arr[RETURNDATACOPY as usize] =	InstructionInfo::new("RETURNDATACOPY",	0, 3, 0, true, GasPriceTier::VeryLow);
 		arr[SHA3 as usize] =			InstructionInfo::new("SHA3",			0, 2, 1, false, GasPriceTier::Special);
 		arr[ADDRESS as usize] = 		InstructionInfo::new("ADDRESS",			0, 0, 1, false, GasPriceTier::Base);
 		arr[BALANCE as usize] = 		InstructionInfo::new("BALANCE",			0, 1, 1, false, GasPriceTier::Special);
@@ -369,6 +380,10 @@ pub const GASPRICE: Instruction = 0x3a;
 pub const EXTCODESIZE: Instruction = 0x3b;
 /// copy external code (from another contract)
 pub const EXTCODECOPY: Instruction = 0x3c;
+/// get the size of the return data buffer for the last call
+pub const RETURNDATASIZE: Instruction = 0x3d;
+/// copy return data buffer to memory
+pub const RETURNDATACOPY: Instruction = 0x3e;
 
 /// get hash of most recent complete block
 pub const BLOCKHASH: Instruction = 0x40;

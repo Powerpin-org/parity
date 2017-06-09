@@ -67,6 +67,7 @@ const defaultViews = {
 
   status: {
     active: false,
+    onlyPersonal: true,
     icon: <StatusIcon />,
     route: '/status',
     value: 'status'

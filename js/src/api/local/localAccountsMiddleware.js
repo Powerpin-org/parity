@@ -147,6 +147,10 @@ export default class LocalAccountsMiddleware extends Middleware {
       return true;
     });
 
+    register('parity_setNewDappsDefaultAddress', ([address]) => {
+      accounts.dappsDefaultAddress = address;
+    });
+
     register('parity_postTransaction', ([tx]) => {
       if (!tx.from) {
         tx.from = accounts.lastAddress;

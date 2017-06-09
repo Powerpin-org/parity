@@ -23,17 +23,39 @@ const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 const LS_STORE_KEY = '_parity::localAccounts';
 
 export default class Accounts {
+  persist = debounce(() => {
+    this._lastState = JSON.stringify(this);
+
+    localStore.set(LS_STORE_KEY, this);
+  }, 100);
+
   constructor (data = localStore.get(LS_STORE_KEY) || {}) {
+    this._lastState = JSON.stringify(data);
+
+    window.addEventListener('storage', ({ key, newValue }) => {
+      if (key !== LS_STORE_KEY) {
+        return;
+      }
+
+      if (newValue !== this._lastState) {
+        console.log('Data changed in a second tab, syncing state');
+
+        this.restore(JSON.parse(newValue));
+      }
+    });
+
+    this.restore(data);
+  }
+
+  restore (data) {
     const {
       last = NULL_ADDRESS,
+      dappsDefault = NULL_ADDRESS,
       store = {}
     } = data;
 
-    this.persist = debounce(() => {
-      localStore.set(LS_STORE_KEY, this);
-    }, 100);
-
     this._last = last;
+    this._dappsDefaultAddress = dappsDefault;
     this._store = {};
 
     if (Array.isArray(store)) {
@@ -91,6 +113,22 @@ export default class Accounts {
 
   get lastAddress () {
     return this._last;
+  }
+
+  get dappsDefaultAddress () {
+    if (this._dappsDefaultAddress === NULL_ADDRESS) {
+      return this._last;
+    }
+
+    if (this._dappsDefaultAddress in this._store) {
+      return this._dappsDefaultAddress;
+    }
+
+    return NULL_ADDRESS;
+  }
+
+  set dappsDefaultAddress (value) {
+    this._dappsDefaultAddress = value.toLowerCase();
   }
 
   get (address) {
@@ -170,6 +208,7 @@ export default class Accounts {
   toJSON () {
     return {
       last: this._last,
+      dappsDefault: this._dappsDefaultAddress,
       store: this._store
     };
   }
